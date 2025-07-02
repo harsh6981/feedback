@@ -1,0 +1,24 @@
+{
+  "name": "feedback-management-system",
+  "version": "1.0.0",
+  "description": "A comprehensive feedback management system",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-mongo": "^5.1.0",
+    "dotenv": "^16.5.0",
+    "ejs": "^3.1.9",
+    "express": "^4.18.3",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.2.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

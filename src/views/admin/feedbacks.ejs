@@ -1,0 +1,297 @@
+<%- include('../layouts/main') %>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Feedback Management</h2>
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="fas fa-download"></i> Export
+            </button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+        </div>
+    </div>
+
+    <!-- Feedback List -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Submitted By</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% feedbacks.forEach(feedback => { %>
+                            <tr>
+                                <td><%= feedback.title %></td>
+                                <td>
+                                    <span class="badge bg-secondary"><%= feedback.category %></span>
+                                </td>
+                                <td>
+                                    <span class="badge status-<%= feedback.status %>">
+                                        <%= feedback.status %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="priority-<%= feedback.priority %>">
+                                        <i class="fas fa-flag"></i> <%= feedback.priority %>
+                                    </span>
+                                </td>
+                                <td><%= feedback.user.username %></td>
+                                <td><%= new Date(feedback.createdAt).toLocaleDateString() %></td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="/feedback/<%= feedback._id %>" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-success"
+                                                onclick="updateStatus('<%= feedback._id %>')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="deleteFeedback('<%= feedback._id %>')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <% if (totalPages > 1) { %>
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <% for(let i = 1; i <= totalPages; i++) { %>
+                            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                <a class="page-link" href="?page=<%= i %>&status=<%= status || '' %>&category=<%= category || '' %>&search=<%= search || '' %>">
+                                    <%= i %>
+                                </a>
+                            </li>
+                        <% } %>
+                    </ul>
+                </nav>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Feedbacks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="exportFeedbacks('csv')">
+                        <i class="fas fa-file-csv"></i> Export as CSV
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="exportFeedbacks('json')">
+                        <i class="fas fa-file-code"></i> Export as JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filter Feedbacks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="filterForm">
+                    <div class="mb-3">
+                        <label for="statusFilter" class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryFilter" class="form-label">Category</label>
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="bug">Bug</option>
+                            <option value="feature">Feature</option>
+                            <option value="improvement">Improvement</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="priorityFilter" class="form-label">Priority</label>
+                        <select class="form-select" id="priorityFilter">
+                            <option value="">All Priorities</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm">
+                    <input type="hidden" id="feedbackId">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="pending">Pending</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Update feedback status
+function updateStatus(feedbackId) {
+    document.getElementById('feedbackId').value = feedbackId;
+    const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+    modal.show();
+}
+
+document.getElementById('updateStatusForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const feedbackId = document.getElementById('feedbackId').value;
+    const status = document.getElementById('status').value;
+
+    try {
+        const response = await fetch(`/feedback/${feedbackId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status })
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            const data = await response.json();
+            showNotification(data.message || 'Error updating status', 'error');
+        }
+    } catch (error) {
+        showNotification('Error updating status', 'error');
+    }
+});
+
+// Delete feedback
+async function deleteFeedback(feedbackId) {
+    if (!confirm('Are you sure you want to delete this feedback?')) return;
+
+    try {
+        const response = await fetch(`/feedback/${feedbackId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            const data = await response.json();
+            showNotification(data.message || 'Error deleting feedback', 'error');
+        }
+    } catch (error) {
+        showNotification('Error deleting feedback', 'error');
+    }
+}
+
+// Export feedbacks
+function exportFeedbacks(format) {
+    const feedbacks = <%- JSON.stringify(feedbacks) %>;
+    
+    if (format === 'csv') {
+        const headers = ['Title', 'Category', 'Status', 'Priority', 'Submitted By', 'Date'];
+        const csvContent = [
+            headers.join(','),
+            ...feedbacks.map(feedback => [
+                `"${feedback.title}"`,
+                feedback.category,
+                feedback.status,
+                feedback.priority,
+                feedback.user.username,
+                new Date(feedback.createdAt).toLocaleDateString()
+            ].join(','))
+        ].join('\n');
+
+        downloadFile(csvContent, 'feedbacks.csv', 'text/csv');
+    } else if (format === 'json') {
+        const jsonContent = JSON.stringify(feedbacks, null, 2);
+        downloadFile(jsonContent, 'feedbacks.json', 'application/json');
+    }
+}
+
+// Download file
+function downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+// Filter form submission
+document.getElementById('filterForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const status = document.getElementById('statusFilter').value;
+    const category = document.getElementById('categoryFilter').value;
+    const priority = document.getElementById('priorityFilter').value;
+    
+    let url = '/admin/feedbacks?';
+    if (status) url += `status=${status}&`;
+    if (category) url += `category=${category}&`;
+    if (priority) url += `priority=${priority}`;
+    
+    window.location.href = url;
+});
+</script> 

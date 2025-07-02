@@ -1,0 +1,207 @@
+<%- include('../layouts/main') %>
+
+<div class="container">
+    <h2 class="mb-4">Analytics Dashboard</h2>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Feedbacks</h5>
+                    <h2 class="card-text"><%= stats.totalFeedbacks %></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Resolved</h5>
+                    <h2 class="card-text"><%= stats.resolvedFeedbacks %></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">In Progress</h5>
+                    <h2 class="card-text"><%= stats.inProgressFeedbacks %></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending</h5>
+                    <h2 class="card-text"><%= stats.pendingFeedbacks %></h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Feedback Trends -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Feedback Trends</h5>
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Category Distribution -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Category Distribution</h5>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Status Distribution -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Status Distribution</h5>
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- User Activity -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">User Activity</h5>
+                    <canvas id="userActivityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Contributors -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Top Contributors</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Feedbacks Submitted</th>
+                            <th>Comments Made</th>
+                            <th>Last Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% topContributors.forEach(user => { %>
+                            <tr>
+                                <td><%= user.username %></td>
+                                <td><%= user.feedbackCount %></td>
+                                <td><%= user.commentCount %></td>
+                                <td><%= new Date(user.lastActivity).toLocaleDateString() %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Feedback Trends Chart
+const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+new Chart(trendsCtx, {
+    type: 'line',
+    data: {
+        labels: <%- JSON.stringify(trends.labels) %>,
+        datasets: [{
+            label: 'Feedbacks',
+            data: <%- JSON.stringify(trends.data) %>,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Category Distribution Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(categoryCtx, {
+    type: 'pie',
+    data: {
+        labels: <%- JSON.stringify(categoryDistribution.labels) %>,
+        datasets: [{
+            data: <%- JSON.stringify(categoryDistribution.data) %>,
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+
+// Status Distribution Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: <%- JSON.stringify(statusDistribution.labels) %>,
+        datasets: [{
+            data: <%- JSON.stringify(statusDistribution.data) %>,
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+
+// User Activity Chart
+const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+new Chart(userActivityCtx, {
+    type: 'bar',
+    data: {
+        labels: <%- JSON.stringify(userActivity.labels) %>,
+        datasets: [{
+            label: 'Feedbacks',
+            data: <%- JSON.stringify(userActivity.feedbackData) %>,
+            backgroundColor: 'rgb(75, 192, 192)'
+        }, {
+            label: 'Comments',
+            data: <%- JSON.stringify(userActivity.commentData) %>,
+            backgroundColor: 'rgb(54, 162, 235)'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script> 
