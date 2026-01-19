@@ -33,7 +33,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/feedback-system',
+        mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/feedback',
         collectionName: 'sessions'
     }),
     cookie: {
